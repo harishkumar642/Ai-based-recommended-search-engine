@@ -1,0 +1,20 @@
+1. use python 3.11.9 only . REST OF THE VERSIONS WONT WORK
+
+
+2. add python to your path when installing
+
+
+3. open the project dir with VS CODE and execute this code to install all the packages: 
+
+	python -m pip install --upgrade pip
+	pip install -r requirements.txt
+
+
+4.  Run   "test_local.py"        and go to        http://localhost:8000/docs#/    to test the thing 
+
+
+5. all the trained pickle files and csv files are in models folder. DO NOT ALTER THEM.
+
+
+5. Collaborative Filtering, RNN and filters are all working fine on my end. if u have any doubts FUCK YOU
+

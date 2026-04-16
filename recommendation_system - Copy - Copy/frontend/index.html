@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Gadget Recommendation Engine</title>
+    <style>
+        :root {
+            --bg-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --bg-card: #ffffff;
+            --text-primary: #333;
+            --text-secondary: #666;
+            --border-color: #e0e0e0;
+            --tag-bg: rgba(102, 126, 234, 0.12);
+            --tag-text: #667eea;
+            --shadow: 0 4px 15px rgba(0,0,0,0.08);
+            --header-bg: rgba(255, 255, 255, 0.98);
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            --bg-card: #1e1e2f;
+            --text-primary: #e0e0e0;
+            --text-secondary: #b0b0b0;
+            --border-color: #2a2a3e;
+            --tag-bg: rgba(102, 126, 234, 0.25);
+            --tag-text: #8fa1ff;
+            --shadow: 0 4px 20px rgba(0,0,0,0.5);
+            --header-bg: rgba(30, 30, 47, 0.98);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            min-height: 100vh;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .header {
+            background: var(--header-bg);
+            padding: 25px 0;
+            box-shadow: var(--shadow);
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            color: #667eea;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .tagline {
+            color: var(--text-secondary);
+            font-size: 0.95em;
+            margin-top: 5px;
+        }
+
+        .theme-toggle {
+            background: var(--tag-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 25px;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 1.3em;
+            transition: all 0.3s;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        .search-section {
+            background: var(--bg-card);
+            padding: 28px;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            margin-bottom: 30px;
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        #searchQuery {
+            flex: 1;
+            padding: 14px 20px;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 15px;
+            background: var(--bg-card);
+            color: var(--text-primary);
+            transition: all 0.3s;
+        }
+
+        #searchQuery:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn-search {
+            padding: 14px 32px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-search:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .filters {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 14px;
+            align-items: end;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .filter-group input,
+        .filter-group select {
+            padding: 10px 12px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+            background: var(--bg-card);
+            color: var(--text-primary);
+            transition: border-color 0.2s;
+        }
+
+        .filter-group input:focus,
+        .filter-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .filter-group select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23667eea' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 36px;
+        }
+
+        .filter-group select option {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            padding: 10px;
+        }
+
+        .price-slider-container {
+            position: relative;
+            height: 40px;
+            margin-top: 10px;
+        }
+
+        .price-slider-container input[type="range"] {
+            position: absolute;
+            width: 100%;
+            height: 6px;
+            background: transparent;
+            pointer-events: none;
+            -webkit-appearance: none;
+        }
+
+        .price-slider-container input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            pointer-events: all;
+            width: 18px;
+            height: 18px;
+            background: #667eea;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+
+        .price-slider-container input[type="range"]::-moz-range-thumb {
+            pointer-events: all;
+            width: 18px;
+            height: 18px;
+            background: #667eea;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+
+        .price-slider-container::before {
+            content: '';
+            position: absolute;
+            top: 17px;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: var(--border-color);
+            border-radius: 3px;
+        }
+
+        .price-values {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            font-weight: 600;
+            color: #667eea;
+            font-size: 14px;
+        }
+
+        .btn-primary, .btn-secondary {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--tag-bg);
+        }
+
+        .results-section {
+            padding: 20px 0 50px;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .results-header h2 {
+            color: var(--text-primary);
+            font-size: 1.7em;
+        }
+
+        .result-count {
+            background: var(--bg-card);
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 600;
+            color: #667eea;
+            box-shadow: var(--shadow);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 80px;
+            color: var(--text-primary);
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid var(--border-color);
+            border-top-color: #667eea;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 24px;
+        }
+
+        .product-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: var(--shadow);
+            transition: all 0.3s;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .product-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 30px rgba(102, 126, 234, 0.2);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 220px;
+            object-fit: contain;
+            border-radius: 12px;
+            background: #f8f8f8;
+            margin-bottom: 14px;
+            padding: 10px;
+        }
+
+        [data-theme="dark"] .product-image {
+            background: #2a2a3e;
+        }
+
+        .product-image-placeholder {
+            width: 100%;
+            height: 220px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4em;
+            background: var(--tag-bg);
+            border-radius: 12px;
+            margin-bottom: 14px;
+        }
+
+        .product-card h3 {
+            font-size: 1.08em;
+            color: var(--text-primary);
+            margin-bottom: 14px;
+            min-height: 52px;
+            line-height: 1.45;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .category-tag {
+            display: inline-block;
+            background: var(--tag-bg);
+            color: var(--tag-text);
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-bottom: 14px;
+            max-width: fit-content;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .product-price {
+            font-size: 1.65em;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 10px 0 12px;
+        }
+
+        .product-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 12px 0;
+            font-size: 13px;
+            color: var(--text-secondary);
+            gap: 10px;
+        }
+
+        .product-rating {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            flex-shrink: 0;
+        }
+
+        .product-score {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 100px 20px;
+            color: var(--text-primary);
+        }
+
+        .empty-state p {
+            font-size: 1.2em;
+            margin: 10px 0;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
+        }
+
+        .modal-content {
+            background: var(--bg-card);
+            margin: 3% auto;
+            padding: 35px;
+            width: 90%;
+            max-width: 1100px;
+            border-radius: 20px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+
+        .modal-content h3 {
+            color: var(--text-primary);
+        }
+
+        .close {
+            float: right;
+            font-size: 32px;
+            font-weight: bold;
+            cursor: pointer;
+            color: var(--text-secondary);
+            line-height: 1;
+        }
+
+        .close:hover {
+            color: var(--text-primary);
+        }
+
+        .similar-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 25px;
+        }
+
+        .detail-header {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .detail-image {
+            width: 100%;
+            height: 400px;
+            object-fit: contain;
+            border-radius: 16px;
+            background: #f8f8f8;
+            padding: 20px;
+        }
+
+        [data-theme="dark"] .detail-image {
+            background: #2a2a3e;
+        }
+
+        .detail-image-placeholder {
+            width: 100%;
+            height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 6em;
+            background: var(--tag-bg);
+            border-radius: 16px;
+        }
+
+        .detail-info {
+            background: var(--tag-bg);
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+
+        .detail-price {
+            font-size: 2.2em;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 12px;
+        }
+
+        .detail-rating {
+            font-size: 1.2em;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+        }
+
+        .detail-score {
+            color: var(--text-secondary);
+            font-size: 0.95em;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.5em;
+            }
+            .products-grid {
+                grid-template-columns: 1fr;
+            }
+            .filters {
+                grid-template-columns: 1fr;
+            }
+            .detail-header {
+                grid-template-columns: 1fr;
+            }
+            .detail-image {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <div class="header-content">
+                <div>
+                    <h1>🛍️ AI Gadget Recommender</h1>
+                    <p class="tagline">Smart recommendations powered by machine learning</p>
+                </div>
+                <button class="theme-toggle" id="themeToggle" title="Toggle theme">🌙</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <section class="search-section">
+            <div class="search-bar">
+                <input type="text" id="searchQuery" placeholder="Search for products (e.g., Samsung, iPhone, OnePlus)...">
+                <button class="btn-search" id="searchBtn">🔍 Search</button>
+            </div>
+
+            <div class="filters">
+                <!-- Price Range Slider -->
+                <div class="filter-group" style="grid-column: 1 / -1;">
+                    <label>Price Range</label>
+                    <div class="price-slider-container">
+                        <input type="range" id="minPriceSlider" min="0" max="100000" value="0" step="1000">
+                        <input type="range" id="maxPriceSlider" min="0" max="100000" value="50000" step="1000">
+                    </div>
+                    <div class="price-values">
+                        <span>₹<span id="minPriceValue">0</span></span>
+                        <span>₹<span id="maxPriceValue">50,000</span></span>
+                    </div>
+                </div>
+
+                <!-- Results Count -->
+                <div class="filter-group">
+                    <label>Show Results</label>
+                    <select id="resultCount">
+                        <option value="4">4 products</option>
+                        <option value="6">6 products</option>
+                        <option value="8" selected>8 products</option>
+                        <option value="10">10 products</option>
+                        <option value="12">12 products</option>
+                        <option value="15">15 products</option>
+                        <option value="20">20 products</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label>Category</label>
+                    <select id="category">
+                        <option value="">All</option>
+                        <option value="Mobile">Mobile</option>
+                        <option value="Electronics">Electronics</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label>Sort By</label>
+                    <select id="sortBy">
+                        <option value="score">Relevance</option>
+                        <option value="price_asc">Price: Low to High</option>
+                        <option value="price_desc">Price: High to Low</option>
+                        <option value="rating">Rating</option>
+                        <option value="popularity">Popularity</option>
+                    </select>
+                </div>
+
+                <button class="btn-primary" id="applyFilters">Apply</button>
+                <button class="btn-secondary" id="clearFilters">Clear</button>
+            </div>
+        </section>
+
+        <section class="results-section">
+            <div class="results-header">
+                <h2>Recommended Products</h2>
+                <span id="resultCountDisplay" class="result-count">Loading...</span>
+            </div>
+
+            <div id="loading" class="loading" style="display: none;">
+                <div class="spinner"></div>
+                <p>Loading recommendations...</p>
+            </div>
+
+            <div id="productsGrid" class="products-grid"></div>
+
+            <div id="emptyState" class="empty-state" style="display: none;">
+                <p>😔 No products found</p>
+                <p>Try adjusting your filters or search query.</p>
+            </div>
+        </section>
+    </div>
+
+    <!-- Product Detail Modal -->
+    <div id="detailModal" class="modal">
+        <div class="modal-content">
+            <span class="close close-detail">&times;</span>
+            <div id="detailContent"></div>
+            <div id="detailSimilarGrid"></div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        // Theme Toggle
+        const themeToggle = document.getElementById('themeToggle');
+        const html = document.documentElement;
+        
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        html.setAttribute('data-theme', savedTheme);
+        themeToggle.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+        
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            themeToggle.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+        });
+    </script>
+</body>
+</html>
