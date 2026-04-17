@@ -1,0 +1,19 @@
+# Core scientific computing
+pandas==2.2.2
+numpy==1.26.4
+scipy==1.13.0
+scikit-learn==1.5.0
+
+# Recommendation algorithms
+implicit==0.7.2
+
+# Deep learning (RNN autocomplete)
+tensorflow-cpu==2.16.1
+
+# Web framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.5.0
+
+# Optional: for production
+python-multipart==0.0.6
