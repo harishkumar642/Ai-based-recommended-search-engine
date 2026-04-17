@@ -1,4 +1,4 @@
-import streamlit as st
+ import streamlit as st
 import requests
 
 st.title("AI Recommendation System")
